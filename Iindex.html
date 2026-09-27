@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Duty Assign Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased pb-24 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-blue-700 text-white p-4 shadow-md sticky top-0 z-50">
+    <div class="max-w-md mx-auto flex justify-between items-center">
+      <div>
+        <div class="flex items-center space-x-1.5">
+          <h1 class="text-xl font-bold tracking-wide">DUTY ASSIGN PORTAL</h1>
+          <span class="bg-blue-900 text-blue-200 text-[10px] px-1.5 py-0.5 rounded font-bold">v3.0</span>
+        </div>
+        <p class="text-xs text-blue-200">Security Management & History Portal</p>
+      </div>
+      <div class="text-right">
+        <span class="bg-blue-800 text-blue-100 text-xs px-2.5 py-1 rounded-full font-medium inline-block" id="currentDateDisplay">Today</span>
+        <div id="todayDayNameDisplay" class="text-[10px] text-blue-200 font-semibold mt-0.5"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto p-4 space-y-4">
+
+    <!-- Navigation Tabs (3 Tabs) -->
+    <div class="grid grid-cols-3 bg-slate-200 p-1 rounded-xl font-medium text-xs sm:text-sm gap-1">
+      <button id="tabAssignBtn" onclick="switchTab('assign')" class="py-2.5 rounded-lg text-center bg-white text-blue-700 shadow-sm font-semibold transition">
+        📋 Assign
+      </button>
+      <button id="tabStaffBtn" onclick="switchTab('staff')" class="py-2.5 rounded-lg text-center text-slate-600 font-semibold transition flex justify-center items-center space-x-1">
+        <span>👥 Staff & Offs</span>
+        <span id="staffTotalBadge" class="bg-slate-400 text-white text-[10px] px-1.5 py-0.2 rounded-full">0</span>
+      </button>
+      <button id="tabHistoryBtn" onclick="switchTab('history')" class="py-2.5 rounded-lg text-center text-slate-600 font-semibold transition flex justify-center items-center space-x-1">
+        <span>📜 History</span>
+        <span id="historyBadge" class="bg-blue-600 text-white text-[10px] px-1.5 py-0.2 rounded-full hidden">0</span>
+      </button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: ASSIGN DUTY FORM -->
+    <!-- ========================================== -->
+    <div id="assignSection" class="space-y-4">
+
+      <!-- 1. Staff Category Filter -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">1. Staff Category</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="filterStaffCategory('ex-army')" id="catExArmyBtn" class="cat-btn bg-blue-50 border-2 border-blue-600 text-blue-700 p-2 rounded-xl text-center font-bold text-xs transition">
+            🎖️ Ex-Army
+          </button>
+          <button type="button" onclick="filterStaffCategory('civil-male')" id="catCivilMaleBtn" class="cat-btn bg-slate-50 border border-slate-200 text-slate-600 p-2 rounded-xl text-center font-semibold text-xs transition">
+            👨 Civil Male
+          </button>
+          <button type="button" onclick="filterStaffCategory('civil-female')" id="catCivilFemaleBtn" class="cat-btn bg-slate-50 border border-slate-200 text-slate-600 p-2 rounded-xl text-center font-semibold text-xs transition">
+            👩 Civil Female
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. Duty Type / Attendance Selection -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+        <div class="flex justify-between items-center">
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">2. Duty Type (Regular vs OT)</label>
+          <span id="dutyTypeBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Regular Mode</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="setDutyType('Present')" id="dtPresentBtn" class="duty-type-btn bg-blue-50 border-2 border-blue-600 text-blue-700 p-2.5 rounded-xl text-center font-bold text-xs transition">
+            🟢 Regular
+          </button>
+          <button type="button" onclick="setDutyType('OT')" id="dtOtBtn" class="duty-type-btn bg-slate-50 border border-slate-200 text-slate-600 p-2.5 rounded-xl text-center font-semibold text-xs transition">
+            ⚡ OT / Double
+          </button>
+          <button type="button" onclick="setDutyType('WEEK OFF OT')" id="dtWoffBtn" class="duty-type-btn bg-slate-50 border border-slate-200 text-slate-600 p-2.5 rounded-xl text-center font-semibold text-xs transition">
+            🏖️ WeekOff OT
+          </button>
+        </div>
+        <input type="hidden" id="attendanceSelect" value="Present">
+      </div>
+
+      <!-- 3. Employee Selection -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+        <div class="flex justify-between items-center">
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">3. Select Employee (ID & Name)</label>
+          <button type="button" onclick="switchTab('staff')" class="text-[11px] text-blue-600 font-semibold hover:underline">⚙️ Manage Staff</button>
+        </div>
+        <select id="empSelect" onchange="onEmployeeSelectChange()" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <option value="">-- Select Employee --</option>
+        </select>
+        <p id="empHelpText" class="text-[11px] text-slate-400">Showing unassigned staff. For extra shift, click "⚡ OT / Double".</p>
+      </div>
+
+      <!-- 4. Shift Selection -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+        <div class="flex justify-between items-center">
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">4. Select Shift</label>
+          <span id="selectedShiftLabel" class="text-[11px] font-bold text-blue-600">Please choose a shift</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="shift" value="Shift A" onchange="onShiftChange()" class="peer hidden">
+            <div class="p-3 text-center border-2 border-slate-200 rounded-xl font-bold text-slate-600 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition text-sm">Shift A</div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="shift" value="Shift B" onchange="onShiftChange()" class="peer hidden">
+            <div class="p-3 text-center border-2 border-slate-200 rounded-xl font-bold text-slate-600 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition text-sm">Shift B</div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="shift" value="Shift C" onchange="onShiftChange()" class="peer hidden">
+            <div class="p-3 text-center border-2 border-slate-200 rounded-xl font-bold text-slate-600 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition text-sm">Shift C</div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="shift" value="General Shift" onchange="onShiftChange()" class="peer hidden">
+            <div class="p-3 text-center border-2 border-slate-200 rounded-xl font-bold text-slate-600 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition text-sm">General Shift</div>
+          </label>
+          <label class="cursor-pointer col-span-2">
+            <input type="radio" name="shift" value="8 Hours Duty" onchange="onShiftChange()" class="peer hidden">
+            <div class="p-3 text-center border-2 border-slate-200 rounded-xl font-bold text-slate-600 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition text-sm">8 Hours Duty</div>
+          </label>
+        </div>
+      </div>
+
+      <!-- 5. Duty Location Selection -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+        <div class="flex justify-between items-center">
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">5. Duty Location</label>
+          <span id="locShiftSummary" class="text-[11px] font-semibold text-slate-400">Select a shift first</span>
+        </div>
+        <select id="locationSelect" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <option value="">-- Select Shift First --</option>
+        </select>
+      </div>
+
+      <!-- 6. Target WhatsApp Group -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">6. Target WhatsApp Group</label>
+        <select id="groupSelect" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-green-500 focus:outline-none">
+          <option value="LALITH PUS">LALITH PUS Group</option>
+          <option value="SECURITY STAFF DUTY">SECURITY STAFF DUTY Group</option>
+          <option value="GENERAL ANNOUNCEMENTS">GENERAL ANNOUNCEMENTS Group</option>
+        </select>
+      </div>
+
+      <!-- Add to List Action Button -->
+      <button type="button" onclick="addDutyToList()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-2xl shadow-md flex items-center justify-center space-x-2 text-base transition">
+        <span>➕ Add Person to Today's List</span>
+      </button>
+
+      <!-- Current Assigned Batch List -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+        <div class="flex justify-between items-center border-b pb-2">
+          <h3 class="font-bold text-slate-700 text-sm flex items-center space-x-1">
+            <span>📋 Current Assigned List</span>
+            <span id="batchCountBadge" class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-bold">0 Persons</span>
+          </h3>
+          <button onclick="clearBatchList()" class="text-xs text-red-500 font-semibold hover:underline">Clear List</button>
+        </div>
+
+        <div id="batchDisplayList" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+          <p class="text-xs text-slate-400 text-center py-4">No staff added to current batch list yet.</p>
+        </div>
+      </div>
+
+      <!-- Separate Action Buttons: Submit & Save, and WhatsApp -->
+      <div class="space-y-2 pt-1">
+        <!-- 1. Submit Duties to History -->
+        <button type="button" onclick="submitDuties()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-2xl shadow-md flex items-center justify-center space-x-2 text-base transition">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-7 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+          </svg>
+          <span>💾 Submit & Save Duty List</span>
+        </button>
+
+        <!-- 2. Send Duties to WhatsApp -->
+        <button type="button" onclick="sendAllToWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg flex items-center justify-center space-x-2 text-base transition">
+          <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+          </svg>
+          <span>📲 Send Duties to WhatsApp</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: STAFF & WEEK OFF MANAGEMENT -->
+    <!-- ========================================== -->
+    <div id="staffSection" class="hidden space-y-4">
+
+      <!-- Add New Employee Form -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+        <h3 class="text-sm font-bold text-slate-700 flex items-center space-x-1.5">
+          <span>➕ Add New Employee</span>
+        </h3>
+        <div class="space-y-2 text-xs">
+          <div>
+            <label class="block font-bold text-slate-500 uppercase mb-1">Employee ID & Full Name</label>
+            <input type="text" id="newEmpName" placeholder="e.g. 789 - RAMA KRISHNA" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-bold text-slate-500 uppercase mb-1">Category</label>
+              <select id="newEmpCategory" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <option value="ex-army">🎖️ Ex-Army</option>
+                <option value="civil-male">👨 Civil Male</option>
+                <option value="civil-female">👩 Civil Female</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-500 uppercase mb-1">Designated Week Off</label>
+              <select id="newEmpWeekOff" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <option value="Sunday">Sunday</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+              </select>
+            </div>
+          </div>
+          <button type="button" onclick="addNewEmployee()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl shadow transition mt-1">
+            ➕ Save New Employee
+          </button>
+        </div>
+      </div>
+
+      <!-- Staff Filter & Today's Week Off Summary -->
+      <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+        <div class="flex justify-between items-center text-xs">
+          <span class="font-bold text-slate-500 uppercase">Filter Staff List:</span>
+          <span id="staffStatsLabel" class="text-blue-600 font-bold"></span>
+        </div>
+        <div class="grid grid-cols-5 gap-1 text-[11px]">
+          <button onclick="filterStaffListTab('all')" id="staffTabFilterAll" class="staff-tab-btn py-1.5 bg-blue-600 text-white font-bold rounded-lg text-center">All</button>
+          <button onclick="filterStaffListTab('ex-army')" id="staffTabFilterEx" class="staff-tab-btn py-1.5 bg-slate-100 text-slate-600 font-semibold rounded-lg text-center">Ex-Army</button>
+          <button onclick="filterStaffListTab('civil-male')" id="staffTabFilterCM" class="staff-tab-btn py-1.5 bg-slate-100 text-slate-600 font-semibold rounded-lg text-center">Civil M</button>
+          <button onclick="filterStaffListTab('civil-female')" id="staffTabFilterCF" class="staff-tab-btn py-1.5 bg-slate-100 text-slate-600 font-semibold rounded-lg text-center">Civil F</button>
+          <button onclick="filterStaffListTab('off-today')" id="staffTabFilterOff" class="staff-tab-btn py-1.5 bg-slate-100 text-purple-700 font-semibold rounded-lg text-center">🏖️ Off Today</button>
+        </div>
+      </div>
+
+      <!-- Staff List Container -->
+      <div id="staffCardsContainer" class="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+        <!-- Rendered dynamically -->
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: SAVED HISTORY & LOGS -->
+    <!-- ========================================== -->
+    <div id="historySection" class="hidden space-y-4">
+
+      <!-- Category Filter Buttons for History -->
+      <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+        <span class="block text-xs font-bold text-slate-500 uppercase">Filter History By Category:</span>
+        <div class="grid grid-cols-4 gap-1 text-xs">
+          <button onclick="filterHistoryCategory('all')" id="histCatAll" class="hist-cat-btn py-2 bg-blue-600 text-white font-bold rounded-xl text-center">All</button>
+          <button onclick="filterHistoryCategory('ex-army')" id="histCatExArmy" class="hist-cat-btn py-2 bg-slate-100 text-slate-600 font-semibold rounded-xl text-center">Ex-Army</button>
+          <button onclick="filterHistoryCategory('civil-male')" id="histCatCivilMale" class="hist-cat-btn py-2 bg-slate-100 text-slate-600 font-semibold rounded-xl text-center">Civil M</button>
+          <button onclick="filterHistoryCategory('civil-female')" id="histCatCivilFemale" class="hist-cat-btn py-2 bg-slate-100 text-slate-600 font-semibold rounded-xl text-center">Civil F</button>
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-200">
+        <span class="text-xs font-bold text-slate-500 uppercase">Assigned Staff Duty Logs</span>
+        <button onclick="clearHistory()" class="text-xs text-red-600 font-semibold hover:underline">Clear History</button>
+      </div>
+
+      <div id="historyList" class="space-y-3">
+        <!-- Rendered dynamically -->
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    // Day names array
+    const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const currentDayOfWeek = DAY_NAMES[new Date().getDay()];
+
+    // Default Initial Staff Database with designated Week Offs (from Sunday to Saturday)
+    const defaultStaffData = [
+      // Ex-Army
+      { id: 1, name: "245 - CH SIVA NAGA RAJU", category: "ex-army", weekOff: "Sunday" },
+      { id: 2, name: "244 - K RAGHAVAIAH", category: "ex-army", weekOff: "Monday" },
+      { id: 3, name: "127 - SK BAAJI", category: "ex-army", weekOff: "Tuesday" },
+      { id: 4, name: "243 - PVR REDDY", category: "ex-army", weekOff: "Wednesday" },
+      { id: 5, name: "246 - LOKESWARA RAO", category: "ex-army", weekOff: "Thursday" },
+      { id: 6, name: "247 - E GOVINDA REDDY", category: "ex-army", weekOff: "Friday" },
+      { id: 7, name: "248 - G RATTAIAH", category: "ex-army", weekOff: "Saturday" },
+      { id: 8, name: "269 - SK MASTAN VALI", category: "ex-army", weekOff: "Sunday" },
+      { id: 9, name: "270 - SD FIRDOSH", category: "ex-army", weekOff: "Monday" },
+      { id: 10, name: "271 - A KARIMULLAH", category: "ex-army", weekOff: "Tuesday" },
+      { id: 11, name: "272 - Y VIJAYA KRISHNA", category: "ex-army", weekOff: "Wednesday" },
+      { id: 12, name: "273 - E VEERANJANEYULU", category: "ex-army", weekOff: "Thursday" },
+      { id: 13, name: "290 - P VENKATA RAMU", category: "ex-army", weekOff: "Friday" },
+      { id: 14, name: "291 - S LAKSHMAN", category: "ex-army", weekOff: "Saturday" },
+      { id: 15, name: "292 - SK MOULALI", category: "ex-army", weekOff: "Sunday" },
+      { id: 16, name: "293 - N VENU BABU", category: "ex-army", weekOff: "Monday" },
+      { id: 17, name: "296 - S PANDU RANGA RAO", category: "ex-army", weekOff: "Tuesday" },
+      { id: 18, name: "298 - KSN SANKAR", category: "ex-army", weekOff: "Wednesday" },
+      { id: 19, name: "301 - M SUDHAKAR", category: "ex-army", weekOff: "Thursday" },
+      { id: 20, name: "303 - RL SIVAMALLA REDDY", category: "ex-army", weekOff: "Friday" },
+      { id: 21, name: "305 - K JAGAN MOHAN", category: "ex-army", weekOff: "Saturday" },
+      { id: 22, name: "308 - N VEERASWAMY", category: "ex-army", weekOff: "Sunday" },
+      { id: 23, name: "309 - A SRINIVASA RAO", category: "ex-army", weekOff: "Monday" },
+      { id: 24, name: "314 - MD MUSTAK", category: "ex-army", weekOff: "Tuesday" },
+      { id: 25, name: "325 - M ANJANEYULU", category: "ex-army", weekOff: "Wednesday" },
+      { id: 26, name: "326 - K GOPI", category: "ex-army", weekOff: "Thursday" },
+      { id: 27, name: "330 - K KAMESWARARAO", category: "ex-army", weekOff: "Friday" },
+      { id: 28, name: "339 - P KOTESWARARAO", category: "ex-army", weekOff: "Saturday" },
+      { id: 29, name: "340 - K BALA RAJU", category: "ex-army", weekOff: "Sunday" },
+      { id: 30, name: "344 - T VENKATA RAMANA", category: "ex-army", weekOff: "Monday" },
+      { id: 31, name: "345 - A PRASAD", category: "ex-army", weekOff: "Tuesday" },
+      { id: 32, name: "509 - P VIJAYA KUMAR", category: "ex-army", weekOff: "Wednesday" },
+      { id: 33, name: "528 - S CHANDRA SEKHAR", category: "ex-army", weekOff: "Thursday" },
+      { id: 34, name: "551 - SK RAFI", category: "ex-army", weekOff: "Friday" },
+      { id: 35, name: "556 - SK KARIMULLA", category: "ex-army", weekOff: "Saturday" },
+      { id: 36, name: "592 - CH TIRUPATHAIAH", category: "ex-army", weekOff: "Sunday" },
+
+      // Civil Male
+      { id: 37, name: "148 - D MOSHE", category: "civil-male", weekOff: "Monday" },
+      { id: 38, name: "319 - SK BASHEED", category: "civil-male", weekOff: "Tuesday" },
+      { id: 39, name: "361 - D SRINIVASA RAO", category: "civil-male", weekOff: "Wednesday" },
+      { id: 40, name: "514 - J SANTHOSH KUMAR", category: "civil-male", weekOff: "Thursday" },
+      { id: 41, name: "569 - D JAYA KUMAR", category: "civil-male", weekOff: "Friday" },
+      { id: 42, name: "669 - CH SAMBA SIVA RAO", category: "civil-male", weekOff: "Saturday" },
+      { id: 43, name: "670 - N NAGESWARA RAO", category: "civil-male", weekOff: "Sunday" },
+      { id: 44, name: "464 - V V NARAYANA", category: "civil-male", weekOff: "Monday" },
+      { id: 45, name: "1150 - D MOSHE", category: "civil-male", weekOff: "Tuesday" },
+      { id: 46, name: "5092 - D SRINIVAS", category: "civil-male", weekOff: "Wednesday" },
+      { id: 47, name: "361 - N BHARAT KUMAR", category: "civil-male", weekOff: "Thursday" },
+
+      // Civil Female
+      { id: 48, name: "461 - G NAGA VANI", category: "civil-female", weekOff: "Sunday" },
+      { id: 49, name: "2526 - K KEERTHI", category: "civil-female", weekOff: "Monday" },
+      { id: 50, name: "2449 - VENKATA LAKSHMI", category: "civil-female", weekOff: "Tuesday" },
+      { id: 51, name: "2608 - N SIVAMMA", category: "civil-female", weekOff: "Wednesday" },
+      { id: 52, name: "2520 - PARAMESWARI", category: "civil-female", weekOff: "Thursday" },
+      { id: 53, name: "2899 - P MERRY", category: "civil-female", weekOff: "Friday" },
+      { id: 54, name: "3047 - P RISHITHA", category: "civil-female", weekOff: "Saturday" },
+      { id: 55, name: "2959 - LAKSHMI RAJYAM", category: "civil-female", weekOff: "Sunday" },
+      { id: 56, name: "2814 - N ANURADHA", category: "civil-female", weekOff: "Monday" },
+      { id: 57, name: "K TRIVENI", category: "civil-female", weekOff: "Tuesday" },
+      { id: 58, name: "D RAMA DEVI", category: "civil-female", weekOff: "Wednesday" },
+      { id: 59, name: "V PRABHAVATHI", category: "civil-female", weekOff: "Thursday" },
+      { id: 60, name: "B ROJA", category: "civil-female", weekOff: "Friday" },
+      { id: 61, name: "K SIRISHA", category: "civil-female", weekOff: "Saturday" },
+      { id: 62, name: "G HIMA BINDU", category: "civil-female", weekOff: "Sunday" }
+    ];
+
+    // Load persistent staff database from localStorage, or use default
+    let staffData = JSON.parse(localStorage.getItem('portal_staff_database') || 'null');
+    if (!staffData || !Array.isArray(staffData) || staffData.length === 0) {
+      staffData = defaultStaffData;
+      localStorage.setItem('portal_staff_database', JSON.stringify(staffData));
+    }
+
+    const locationMapping = {
+      "Shift A": ["MG 1", "MG 2", "OLD GATE", "CELLUAR", "PORTCO", "MRI(GF)", "P(HOUSE)", "4TH FLOOR", "TOP&7 TH F", "G(H)"],
+      "Shift B": ["MG 1", "MG 2", "OLD GATE", "CELLUAR", "PORTCO", "MRI(GF)", "P(HOUSE)", "4TH FLOOR", "TOP&7 TH F", "G(H)"],
+      "Shift C": ["MG 1", "MG 2", "OLD GATE", "CELLUAR", "PORTCO", "MRI(GF)", "P(HOUSE)", "TOP&7 TH F", "G(H 1)", "G(H 2)", "1 FLOOR", "2 FLOOR", "3RD FLOOR", "4F (1)", "4F(2)", "4F(3 A(CCU))", "5F(1)", "5F(2)", "24HRS LIFT", "VIP LIFT"],
+      "General Shift": ["EXCALATOR", "H(D) PORTCO", "MRI", "OT SECOND FLOOR", "G(LIFT)", "VIP(LIFT)", "24HRS LIFT", "COPER LIFT", "EMERGENCY LIFT", "4TH(NICU)"],
+      "8 Hours Duty": ["EMERGENCY", "2(F)", "3(F)", "4F (1)", "4F(2)", "4F(3 A(CCU))", "5F(1)", "5F(2)", "7 TH (F)", "VEH(P)", "GL(DOOR)"]
+    };
+
+    let currentCategory = 'ex-army';
+    let currentDutyType = 'Present';
+    let currentBatchList = [];
+    let historyLogs = JSON.parse(localStorage.getItem('duty_history_logs') || '[]');
+    let currentHistFilter = 'all';
+    let currentStaffTabFilter = 'all';
+
+    // Helper: Clean location string
+    function cleanLocationName(loc) {
+      if (!loc) return '';
+      return loc.replace(/\s*\(\d+\s+Assigned\)/gi, '').trim();
+    }
+
+    window.onload = function() {
+      const todayFormatted = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+      document.getElementById('currentDateDisplay').innerText = todayFormatted;
+      document.getElementById('todayDayNameDisplay').innerText = `📅 ${currentDayOfWeek}`;
+
+      filterStaffCategory('ex-army');
+      renderBatchList();
+      updateHistoryUI();
+      renderStaffManagementTab();
+    };
+
+    // ==========================================
+    // DUTY TYPE & EMPLOYEE ASSIGN LOGIC
+    // ==========================================
+
+    function setDutyType(type) {
+      currentDutyType = type;
+      const hiddenInput = document.getElementById('attendanceSelect');
+      if (hiddenInput) hiddenInput.value = type;
+
+      const badge = document.getElementById('dutyTypeBadge');
+      const help = document.getElementById('empHelpText');
+
+      document.querySelectorAll('.duty-type-btn').forEach(b => {
+        b.className = "duty-type-btn bg-slate-50 border border-slate-200 text-slate-600 p-2.5 rounded-xl text-center font-semibold text-xs transition";
+      });
+
+      if (type === 'Present') {
+        document.getElementById('dtPresentBtn').className = "duty-type-btn bg-blue-50 border-2 border-blue-600 text-blue-700 p-2.5 rounded-xl text-center font-bold text-xs transition";
+        if (badge) {
+          badge.textContent = "Regular Mode";
+          badge.className = "text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700";
+        }
+        if (help) help.textContent = 'Showing unassigned staff. For extra shift, click "⚡ OT / Double".';
+      } else if (type === 'OT') {
+        document.getElementById('dtOtBtn').className = "duty-type-btn bg-amber-50 border-2 border-amber-600 text-amber-700 p-2.5 rounded-xl text-center font-bold text-xs transition";
+        if (badge) {
+          badge.textContent = "⚡ OT Mode Active";
+          badge.className = "text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800";
+        }
+        if (help) help.textContent = '⚡ OT Mode: Showing ALL staff (including staff already assigned a shift today).';
+      } else if (type === 'WEEK OFF OT') {
+        document.getElementById('dtWoffBtn').className = "duty-type-btn bg-purple-50 border-2 border-purple-600 text-purple-700 p-2.5 rounded-xl text-center font-bold text-xs transition";
+        if (badge) {
+          badge.textContent = "🏖️ WeekOff OT Active";
+          badge.className = "text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800";
+        }
+        if (help) help.textContent = `🏖️ Week Off OT: Assign duties to staff who are off on ${currentDayOfWeek}.`;
+      }
+
+      updateEmployeeDropdown();
+    }
+
+    function getEmployeeAssignedDetailsToday() {
+      const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      const map = {};
+      historyLogs.forEach(log => {
+        if (log.date === today && log.emp) {
+          if (!map[log.emp]) map[log.emp] = [];
+          map[log.emp].push(`${log.shift} (${cleanLocationName(log.location)})`);
+        }
+      });
+      currentBatchList.forEach(item => {
+        if (item.emp) {
+          if (!map[item.emp]) map[item.emp] = [];
+          map[item.emp].push(`${item.shift} (${cleanLocationName(item.location)})`);
+        }
+      });
+      return map;
+    }
+
+    function updateEmployeeDropdown() {
+      const select = document.getElementById('empSelect');
+      const currentVal = select.value;
+      select.innerHTML = '<option value="">-- Select Employee --</option>';
+
+      const assignedMap = getEmployeeAssignedDetailsToday();
+      const isOtMode = (currentDutyType === 'OT');
+      const isWeekOffMode = (currentDutyType === 'WEEK OFF OT');
+
+      // Filter staff by category
+      const categoryStaff = staffData.filter(e => e.category === currentCategory);
+
+      if (isWeekOffMode) {
+        // Show staff whose designated week off is TODAY first!
+        const todayOffStaff = categoryStaff.filter(e => e.weekOff === currentDayOfWeek);
+        const otherStaff = categoryStaff.filter(e => e.weekOff !== currentDayOfWeek);
+
+        if (todayOffStaff.length > 0) {
+          const offGroup = document.createElement('optgroup');
+          offGroup.label = `── Staff Having Week Off Today (${currentDayOfWeek}) ──`;
+          todayOffStaff.forEach(emp => {
+            const opt = document.createElement('option');
+            opt.value = emp.name;
+            opt.textContent = `🏖️ ${emp.name} [Off: ${emp.weekOff}]`;
+            offGroup.appendChild(opt);
+          });
+          select.appendChild(offGroup);
+        }
+
+        const allGroup = document.createElement('optgroup');
+        allGroup.label = `── Other Staff in Category ──`;
+        otherStaff.forEach(emp => {
+          const opt = document.createElement('option');
+          opt.value = emp.name;
+          opt.textContent = `${emp.name} (Off: ${emp.weekOff})`;
+          allGroup.appendChild(opt);
+        });
+        select.appendChild(allGroup);
+
+      } else if (isOtMode) {
+        // Show ALL staff in the category. Clearly tag the ones already on duty today so user can easily choose for extra shift
+        categoryStaff.forEach(emp => {
+          const opt = document.createElement('option');
+          opt.value = emp.name;
+          if (assignedMap[emp.name] && assignedMap[emp.name].length > 0) {
+            opt.textContent = `⚡ ${emp.name} [On Duty: ${assignedMap[emp.name].join(', ')}]`;
+          } else {
+            opt.textContent = `${emp.name} (Off: ${emp.weekOff})`;
+          }
+          select.appendChild(opt);
+        });
+      } else {
+        // Regular Mode:
+        // 1. Unassigned staff come first
+        const unassigned = categoryStaff.filter(e => !assignedMap[e.name] || assignedMap[e.name].length === 0);
+        const assigned = categoryStaff.filter(e => assignedMap[e.name] && assignedMap[e.name].length > 0);
+
+        unassigned.forEach(emp => {
+          const opt = document.createElement('option');
+          opt.value = emp.name;
+          const isOffToday = (emp.weekOff === currentDayOfWeek);
+          opt.textContent = isOffToday ? `🏖️ ${emp.name} (Week Off Today)` : emp.name;
+          select.appendChild(opt);
+        });
+
+        // 2. Already assigned staff in a separate section so user can switch them to OT seamlessly
+        if (assigned.length > 0) {
+          const optGroup = document.createElement('optgroup');
+          optGroup.label = "── Already Assigned Today (Click to Assign OT) ──";
+          assigned.forEach(emp => {
+            const opt = document.createElement('option');
+            opt.value = `ASSIGNED_${emp.name}`;
+            opt.textContent = `⚡ ${emp.name} [${assignedMap[emp.name].join(', ')}] → Select for OT`;
+            optGroup.appendChild(opt);
+          });
+          select.appendChild(optGroup);
+        }
+      }
+
+      if (currentVal && select.querySelector(`option[value="${currentVal}"]`)) {
+        select.value = currentVal;
+      }
+    }
+
+    function onEmployeeSelectChange() {
+      const select = document.getElementById('empSelect');
+      const val = select.value;
+      if (!val) return;
+
+      if (val.startsWith('ASSIGNED_')) {
+        const realName = val.replace('ASSIGNED_', '');
+        setDutyType('OT');
+        select.value = realName;
+        return;
+      }
+
+      // Check if employee has week off today, auto-suggest Week Off OT
+      const empObj = staffData.find(e => e.name === val);
+      if (empObj && empObj.weekOff === currentDayOfWeek && currentDutyType === 'Present') {
+        const confirmWoff = confirm(`Note: ${empObj.name} has scheduled Week Off today (${currentDayOfWeek}).\nDo you want to assign them as "Week Off OT"?`);
+        if (confirmWoff) {
+          setDutyType('WEEK OFF OT');
+          select.value = val;
+        }
+      }
+    }
+
+    function filterStaffCategory(catKey) {
+      currentCategory = catKey;
+      document.querySelectorAll('.cat-btn').forEach(b => b.className = "cat-btn bg-slate-50 border border-slate-200 text-slate-600 p-2 rounded-xl text-center font-semibold text-xs");
+      if(catKey === 'ex-army') document.getElementById('catExArmyBtn').className = "cat-btn bg-blue-50 border-2 border-blue-600 text-blue-700 p-2 rounded-xl text-center font-bold text-xs";
+      if(catKey === 'civil-male') document.getElementById('catCivilMaleBtn').className = "cat-btn bg-blue-50 border-2 border-blue-600 text-blue-700 p-2 rounded-xl text-center font-bold text-xs";
+      if(catKey === 'civil-female') document.getElementById('catCivilFemaleBtn').className = "cat-btn bg-blue-50 border-2 border-blue-600 text-blue-700 p-2 rounded-xl text-center font-bold text-xs";
+
+      updateEmployeeDropdown();
+    }
+
+    // ==========================================
+    // PER-SHIFT LOCATION COUNTER LOGIC
+    // ==========================================
+
+    function getLocationCountsToday(shift) {
+      const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      const counts = {};
+      if (!shift) return counts;
+
+      // Count strictly for the requested shift!
+      historyLogs.forEach(log => {
+        if (log.date === today && log.shift === shift && log.location) {
+          const locClean = cleanLocationName(log.location);
+          counts[locClean] = (counts[locClean] || 0) + 1;
+        }
+      });
+
+      currentBatchList.forEach(item => {
+        if (item.shift === shift && item.location) {
+          const locClean = cleanLocationName(item.location);
+          counts[locClean] = (counts[locClean] || 0) + 1;
+        }
+      });
+
+      return counts;
+    }
+
+    function onShiftChange() {
+      const selectedRadio = document.querySelector('input[name="shift"]:checked');
+      const selectedShift = selectedRadio ? selectedRadio.value : null;
+      const locSelect = document.getElementById('locationSelect');
+      const shiftSummaryLabel = document.getElementById('selectedShiftLabel');
+      const locSummary = document.getElementById('locShiftSummary');
+
+      if (!selectedShift) {
+        locSelect.innerHTML = '<option value="">-- Select Shift First --</option>';
+        if (shiftSummaryLabel) shiftSummaryLabel.textContent = "Please choose a shift";
+        if (locSummary) locSummary.textContent = "Select a shift first";
+        return;
+      }
+
+      if (shiftSummaryLabel) shiftSummaryLabel.textContent = `Selected: ${selectedShift}`;
+
+      // Refresh location counts strictly for this shift!
+      const counts = getLocationCountsToday(selectedShift);
+      const totalAssignedInThisShift = Object.values(counts).reduce((a, b) => a + b, 0);
+
+      if (locSummary) {
+        locSummary.textContent = `${selectedShift}: ${totalAssignedInThisShift} staff assigned`;
+      }
+
+      locSelect.innerHTML = '<option value="">-- Choose Location --</option>';
+
+      if (locationMapping[selectedShift]) {
+        locationMapping[selectedShift].forEach(loc => {
+          const opt = document.createElement('option');
+          opt.value = loc;
+          const assignedCount = counts[loc] || 0;
+          opt.textContent = assignedCount > 0 ? `${loc} (${assignedCount} Assigned)` : loc;
+          locSelect.appendChild(opt);
+        });
+      }
+    }
+
+    function addDutyToList() {
+      const empSelect = document.getElementById('empSelect');
+      let emp = empSelect.value;
+      if (emp.startsWith('ASSIGNED_')) {
+        emp = emp.replace('ASSIGNED_', '');
+      }
+
+      const shiftRadio = document.querySelector('input[name="shift"]:checked');
+      const location = document.getElementById('locationSelect').value;
+
+      if (!emp || !shiftRadio || !location) {
+        alert("Please Employee, Shift, and Location select cheyandi!");
+        return;
+      }
+
+      const newItem = {
+        id: Date.now(),
+        category: currentCategory,
+        emp: emp,
+        dutyType: currentDutyType, // Present, OT, or WEEK OFF OT
+        shift: shiftRadio.value,
+        location: cleanLocationName(location)
+      };
+
+      currentBatchList.push(newItem);
+      renderBatchList();
+
+      // Form Resets
+      empSelect.value = "";
+
+      const shiftRadios = document.querySelectorAll('input[name="shift"]');
+      shiftRadios.forEach(radio => radio.checked = false);
+
+      const locSelect = document.getElementById('locationSelect');
+      locSelect.innerHTML = '<option value="">-- Select Shift First --</option>';
+      locSelect.value = "";
+
+      document.getElementById('selectedShiftLabel').textContent = "Please choose a shift";
+      document.getElementById('locShiftSummary').textContent = "Select a shift first";
+
+      // Reset Duty Type back to Present
+      setDutyType('Present');
+      onShiftChange();
+    }
+
+    function removeItemFromBatch(id) {
+      currentBatchList = currentBatchList.filter(item => item.id !== id);
+      renderBatchList();
+      updateEmployeeDropdown();
+      onShiftChange();
+    }
+
+    function clearBatchList() {
+      if (currentBatchList.length > 0 && confirm("Are you sure you want to clear current batch list?")) {
+        currentBatchList = [];
+        renderBatchList();
+        updateEmployeeDropdown();
+        onShiftChange();
+      }
+    }
+
+    function renderBatchList() {
+      const container = document.getElementById('batchDisplayList');
+      const badge = document.getElementById('batchCountBadge');
+      badge.innerText = `${currentBatchList.length} Persons`;
+
+      if (currentBatchList.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">No staff added to current batch list yet.</p>`;
+        return;
+      }
+
+      // Group by shift
+      const grouped = {};
+      currentBatchList.forEach(item => {
+        if (!grouped[item.shift]) grouped[item.shift] = [];
+        grouped[item.shift].push(item);
+      });
+
+      const shiftOrder = { "Shift A": 1, "Shift B": 2, "Shift C": 3, "General Shift": 4, "8 Hours Duty": 5 };
+      const sortedShifts = Object.keys(grouped).sort((a, b) => (shiftOrder[a] || 99) - (shiftOrder[b] || 99));
+
+      let html = '';
+      for (const shift of sortedShifts) {
+        html += `<div class="font-bold text-sm text-blue-700 mt-2 mb-1.5 border-b border-blue-100 pb-1 flex justify-between items-center">
+          <span>⏰ ${shift}</span>
+          <span class="text-xs font-semibold text-slate-500">${grouped[shift].length} Staff</span>
+        </div>`;
+
+        html += grouped[shift].map((item, index) => {
+          let dutyBadge = '';
+          if (item.dutyType === 'OT') {
+            dutyBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1.5">⚡ OT</span>`;
+          } else if (item.dutyType === 'WEEK OFF OT') {
+            dutyBadge = `<span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1.5">🏖️ WO-OT</span>`;
+          }
+
+          return `
+          <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-xl flex justify-between items-center text-xs mb-2 shadow-sm">
+            <div>
+              <div class="flex items-center flex-wrap">
+                <span class="font-bold text-slate-800">${index + 1}. ${item.emp}</span>
+                ${dutyBadge}
+              </div>
+              <p class="text-slate-500 mt-0.5">📍 Location: <b class="text-slate-700">${item.location}</b></p>
+            </div>
+            <button onclick="removeItemFromBatch(${item.id})" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-white border border-red-100 rounded-lg shadow-sm transition">
+              ❌
+            </button>
+          </div>
+        `;
+        }).join('');
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ==========================================
+    // SUBMIT & WHATSAPP ACTIONS (SEPARATE)
+    // ==========================================
+
+    function submitDuties() {
+      if (currentBatchList.length === 0) {
+        alert("Target list lo at least 1 person ni add cheyandi!");
+        return;
+      }
+
+      const group = document.getElementById('groupSelect').value;
+      const currentDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      const currentTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+      // Save entries to individual history logs
+      currentBatchList.forEach(item => {
+        historyLogs.unshift({
+          id: Date.now() + Math.random(),
+          category: item.category,
+          emp: item.emp,
+          dutyType: item.dutyType || 'Present',
+          shift: item.shift,
+          location: cleanLocationName(item.location),
+          group: group,
+          date: currentDate,
+          time: currentTime
+        });
+      });
+
+      localStorage.setItem('duty_history_logs', JSON.stringify(historyLogs));
+      updateHistoryUI();
+      updateEmployeeDropdown();
+      onShiftChange();
+
+      alert(`✅ Successfully Submitted & Saved ${currentBatchList.length} Duties to History Logs!\nYou can also click "Send Duties to WhatsApp" to share.`);
+    }
+
+    function sendAllToWhatsApp() {
+      if (currentBatchList.length === 0) {
+        alert("Target list lo at least 1 person ni add cheyandi!");
+        return;
+      }
+
+      const group = document.getElementById('groupSelect').value;
+      const currentDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      const currentTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+      // Ensure duties are saved to history
+      currentBatchList.forEach(item => {
+        historyLogs.unshift({
+          id: Date.now() + Math.random(),
+          category: item.category,
+          emp: item.emp,
+          dutyType: item.dutyType || 'Present',
+          shift: item.shift,
+          location: cleanLocationName(item.location),
+          group: group,
+          date: currentDate,
+          time: currentTime
+        });
+      });
+
+      localStorage.setItem('duty_history_logs', JSON.stringify(historyLogs));
+      updateHistoryUI();
+
+      let listText = "";
+      const grouped = {};
+      currentBatchList.forEach(item => {
+        if (!grouped[item.shift]) grouped[item.shift] = [];
+        grouped[item.shift].push(item);
+      });
+
+      const shiftOrder = { "Shift A": 1, "Shift B": 2, "Shift C": 3, "General Shift": 4, "8 Hours Duty": 5 };
+      const sortedShifts = Object.keys(grouped).sort((a, b) => (shiftOrder[a] || 99) - (shiftOrder[b] || 99));
+
+      for (const shift of sortedShifts) {
+        listText += `*${shift}*\n`;
+        grouped[shift].forEach((item, idx) => {
+          let typeTag = '';
+          if (item.dutyType === 'OT') typeTag = ' [⚡ OT]';
+          else if (item.dutyType === 'WEEK OFF OT') typeTag = ' [🏖️ WO-OT]';
+
+          listText += `${idx + 1}. *${item.emp}*${typeTag}\n   └ 📍 ${item.location}\n`;
+        });
+        listText += `\n`;
+      }
+
+      const fullMessage = `📋 *DAILY DUTY ASSIGNMENT LIST*\n` +
+                          `📢 *Group:* ${group}\n` +
+                          `📅 *Date:* ${currentDate}\n` +
+                          `───────────────\n\n` +
+                          listText +
+                          `───────────────\n` +
+                          `Total Staff Assigned: ${currentBatchList.length}`;
+
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(fullMessage)}`, '_blank');
+    }
+
+    // ==========================================
+    // TAB 2: STAFF & WEEK OFF MANAGEMENT LOGIC
+    // ==========================================
+
+    function addNewEmployee() {
+      const nameInput = document.getElementById('newEmpName');
+      const name = nameInput.value.trim();
+      const category = document.getElementById('newEmpCategory').value;
+      const weekOff = document.getElementById('newEmpWeekOff').value;
+
+      if (!name) {
+        alert("Please enter Employee ID and Name!");
+        return;
+      }
+
+      // Check duplicates
+      const exists = staffData.some(e => e.name.toLowerCase() === name.toLowerCase());
+      if (exists) {
+        alert("An employee with this Name / ID already exists!");
+        return;
+      }
+
+      const newEmp = {
+        id: Date.now(),
+        name: name,
+        category: category,
+        weekOff: weekOff
+      };
+
+      staffData.push(newEmp);
+      localStorage.setItem('portal_staff_database', JSON.stringify(staffData));
+
+      nameInput.value = "";
+      alert(`✅ Added: ${name} (Week Off: ${weekOff})`);
+
+      renderStaffManagementTab();
+      updateEmployeeDropdown();
+    }
+
+    function deleteEmployee(id) {
+      const emp = staffData.find(e => e.id === id);
+      if (!emp) return;
+
+      if (confirm(`Are you sure you want to delete employee:\n"${emp.name}"?`)) {
+        staffData = staffData.filter(e => e.id !== id);
+        localStorage.setItem('portal_staff_database', JSON.stringify(staffData));
+        renderStaffManagementTab();
+        updateEmployeeDropdown();
+      }
+    }
+
+    function updateStaffWeekOff(id, newWeekOff) {
+      const emp = staffData.find(e => e.id === id);
+      if (emp) {
+        emp.weekOff = newWeekOff;
+        localStorage.setItem('portal_staff_database', JSON.stringify(staffData));
+        renderStaffManagementTab();
+        updateEmployeeDropdown();
+      }
+    }
+
+    function filterStaffListTab(filterKey) {
+      currentStaffTabFilter = filterKey;
+      document.querySelectorAll('.staff-tab-btn').forEach(b => b.className = "staff-tab-btn py-1.5 bg-slate-100 text-slate-600 font-semibold rounded-lg text-center");
+
+      if (filterKey === 'all') document.getElementById('staffTabFilterAll').className = "staff-tab-btn py-1.5 bg-blue-600 text-white font-bold rounded-lg text-center";
+      if (filterKey === 'ex-army') document.getElementById('staffTabFilterEx').className = "staff-tab-btn py-1.5 bg-blue-600 text-white font-bold rounded-lg text-center";
+      if (filterKey === 'civil-male') document.getElementById('staffTabFilterCM').className = "staff-tab-btn py-1.5 bg-blue-600 text-white font-bold rounded-lg text-center";
+      if (filterKey === 'civil-female') document.getElementById('staffTabFilterCF').className = "staff-tab-btn py-1.5 bg-blue-600 text-white font-bold rounded-lg text-center";
+      if (filterKey === 'off-today') document.getElementById('staffTabFilterOff').className = "staff-tab-btn py-1.5 bg-purple-600 text-white font-bold rounded-lg text-center";
+
+      renderStaffManagementTab();
+    }
+
+    function renderStaffManagementTab() {
+      const container = document.getElementById('staffCardsContainer');
+      const badge = document.getElementById('staffTotalBadge');
+      const statsLabel = document.getElementById('staffStatsLabel');
+
+      if (badge) badge.innerText = staffData.length;
+
+      const offTodayCount = staffData.filter(e => e.weekOff === currentDayOfWeek).length;
+      if (statsLabel) {
+        statsLabel.innerText = `Total: ${staffData.length} | Off Today (${currentDayOfWeek}): ${offTodayCount}`;
+      }
+
+      let filtered = staffData;
+      if (currentStaffTabFilter === 'off-today') {
+        filtered = staffData.filter(e => e.weekOff === currentDayOfWeek);
+      } else if (currentStaffTabFilter !== 'all') {
+        filtered = staffData.filter(e => e.category === currentStaffTabFilter);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="bg-white p-6 rounded-2xl text-center text-slate-400 text-xs border">No employees found for this filter.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map((emp, index) => {
+        const isOffToday = (emp.weekOff === currentDayOfWeek);
+        const catBadge = emp.category === 'ex-army' ? '🎖️ Ex-Army' : (emp.category === 'civil-male' ? '👨 Civil M' : '👩 Civil F');
+
+        return `
+        <div class="bg-white p-3 rounded-2xl border ${isOffToday ? 'border-purple-300 bg-purple-50/30' : 'border-slate-200'} shadow-sm flex items-center justify-between text-xs">
+          <div class="space-y-1 flex-1 pr-2">
+            <div class="flex items-center space-x-1.5">
+              <span class="font-bold text-slate-800">${index + 1}. ${emp.name}</span>
+              ${isOffToday ? '<span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full">🏖️ OFF TODAY</span>' : ''}
+            </div>
+            <div class="flex items-center space-x-2 text-slate-500">
+              <span class="bg-slate-100 px-1.5 py-0.5 rounded text-[10px] font-semibold">${catBadge}</span>
+              <span class="text-[11px]">Week Off:</span>
+              <select onchange="updateStaffWeekOff(${emp.id}, this.value)" class="p-1 bg-white border border-slate-300 rounded font-semibold text-[11px] focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                ${DAY_NAMES.map(d => `<option value="${d}" ${d === emp.weekOff ? 'selected' : ''}>${d}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <button onclick="deleteEmployee(${emp.id})" title="Delete Employee" class="text-red-500 hover:text-red-700 bg-white border border-red-100 hover:bg-red-50 p-2 rounded-xl shadow-sm transition">
+            🗑️
+          </button>
+        </div>
+      `;
+      }).join('');
+    }
+
+    // ==========================================
+    // TAB 3: HISTORY LOGS LOGIC
+    // ==========================================
+
+    function filterHistoryCategory(catKey) {
+      currentHistFilter = catKey;
+      document.querySelectorAll('.hist-cat-btn').forEach(b => b.className = "hist-cat-btn py-2 bg-slate-100 text-slate-600 font-semibold rounded-xl text-center");
+
+      if (catKey === 'all') document.getElementById('histCatAll').className = "hist-cat-btn py-2 bg-blue-600 text-white font-bold rounded-xl text-center";
+      if (catKey === 'ex-army') document.getElementById('histCatExArmy').className = "hist-cat-btn py-2 bg-blue-600 text-white font-bold rounded-xl text-center";
+      if (catKey === 'civil-male') document.getElementById('histCatCivilMale').className = "hist-cat-btn py-2 bg-blue-600 text-white font-bold rounded-xl text-center";
+      if (catKey === 'civil-female') document.getElementById('histCatCivilFemale').className = "hist-cat-btn py-2 bg-blue-600 text-white font-bold rounded-xl text-center";
+
+      updateHistoryUI();
+    }
+
+    function updateHistoryUI() {
+      const container = document.getElementById('historyList');
+      const badge = document.getElementById('historyBadge');
+
+      if (historyLogs.length > 0) {
+        badge.innerText = historyLogs.length;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+
+      let filtered = historyLogs;
+      if (currentHistFilter !== 'all') {
+        filtered = historyLogs.filter(item => item.category === currentHistFilter);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="bg-white p-6 rounded-2xl text-center text-slate-400 text-sm border">No duty history found for this category.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => `
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="font-bold text-slate-800 text-sm">${item.emp}</p>
+              <p class="text-xs text-slate-400">${item.date} • ${item.time}</p>
+            </div>
+            <span class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg">${item.shift}</span>
+          </div>
+          <div class="text-xs text-slate-600 bg-slate-50 p-2 rounded-xl flex justify-between">
+            <span>📍 Location: <b>${item.location}</b></span>
+            <span>📢 Group: <b>${item.group}</b></span>
+          </div>
+          <button onclick='reassignItem(${JSON.stringify(item)})' class="w-full bg-amber-50 border border-amber-200 text-amber-700 font-semibold py-2 rounded-xl text-xs flex items-center justify-center space-x-1 transition hover:bg-amber-100">
+            <span>🔄 Re-Assign / Change Duty</span>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function reassignItem(item) {
+      switchTab('assign');
+      filterStaffCategory(item.category);
+      document.getElementById('empSelect').value = item.emp;
+    }
+
+    function clearHistory() {
+      if (confirm("Clear all history logs?")) {
+        historyLogs = [];
+        localStorage.removeItem('duty_history_logs');
+        updateHistoryUI();
+        onShiftChange();
+      }
+    }
+
+    // ==========================================
+    // TAB NAVIGATION
+    // ==========================================
+
+    function switchTab(tab) {
+      document.getElementById('assignSection').classList.add('hidden');
+      document.getElementById('staffSection').classList.add('hidden');
+      document.getElementById('historySection').classList.add('hidden');
+
+      document.getElementById('tabAssignBtn').className = "py-2.5 rounded-lg text-center text-slate-600 font-semibold transition";
+      document.getElementById('tabStaffBtn').className = "py-2.5 rounded-lg text-center text-slate-600 font-semibold transition flex justify-center items-center space-x-1";
+      document.getElementById('tabHistoryBtn').className = "py-2.5 rounded-lg text-center text-slate-600 font-semibold transition flex justify-center items-center space-x-1";
+
+      if (tab === 'assign') {
+        document.getElementById('assignSection').classList.remove('hidden');
+        document.getElementById('tabAssignBtn').className = "py-2.5 rounded-lg text-center bg-white text-blue-700 shadow-sm font-semibold transition";
+        updateEmployeeDropdown();
+        onShiftChange();
+      } else if (tab === 'staff') {
+        document.getElementById('staffSection').classList.remove('hidden');
+        document.getElementById('tabStaffBtn').className = "py-2.5 rounded-lg text-center bg-white text-blue-700 shadow-sm font-semibold transition flex justify-center items-center space-x-1";
+        renderStaffManagementTab();
+      } else if (tab === 'history') {
+        document.getElementById('historySection').classList.remove('hidden');
+        document.getElementById('tabHistoryBtn').className = "py-2.5 rounded-lg text-center bg-white text-blue-700 shadow-sm font-semibold transition flex justify-center items-center space-x-1";
+        updateHistoryUI();
+      }
+    }
+  </script>
+</body>
+</html>
