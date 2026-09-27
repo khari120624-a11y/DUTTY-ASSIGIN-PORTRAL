@@ -73,15 +73,18 @@
           <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">2. Duty Type (Regular vs OT)</label>
           <span id="dutyTypeBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Regular Mode</span>
         </div>
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-4 gap-2">
           <button type="button" onclick="setDutyType('Present')" id="dtPresentBtn" class="duty-type-btn bg-blue-50 border-2 border-blue-600 text-blue-700 p-2.5 rounded-xl text-center font-bold text-xs transition">
             🟢 Regular
           </button>
           <button type="button" onclick="setDutyType('OT')" id="dtOtBtn" class="duty-type-btn bg-slate-50 border border-slate-200 text-slate-600 p-2.5 rounded-xl text-center font-semibold text-xs transition">
-            ⚡ OT / Double
+            ⚡ OT
           </button>
           <button type="button" onclick="setDutyType('WEEK OFF OT')" id="dtWoffBtn" class="duty-type-btn bg-slate-50 border border-slate-200 text-slate-600 p-2.5 rounded-xl text-center font-semibold text-xs transition">
-            🏖️ WeekOff OT
+            🏖️ WO-OT
+          </button>
+          <button type="button" onclick="setDutyType('LEAVE')" id="dtLeaveBtn" class="duty-type-btn bg-slate-50 border border-slate-200 text-slate-600 p-2.5 rounded-xl text-center font-semibold text-xs transition">
+            🔴 Leave
           </button>
         </div>
         <input type="hidden" id="attendanceSelect" value="Present">
@@ -139,9 +142,10 @@
           <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">5. Duty Location</label>
           <span id="locShiftSummary" class="text-[11px] font-semibold text-slate-400">Select a shift first</span>
         </div>
-        <select id="locationSelect" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        <select id="locationSelect" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none mb-2">
           <option value="">-- Select Shift First --</option>
         </select>
+        <input type="text" id="customLocationInput" placeholder="...or type custom location (e.g. ON LEAVE, GATE 3)" class="w-full p-3 bg-white border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
       </div>
 
       <!-- 6. Target WhatsApp Group -->
@@ -476,6 +480,15 @@
           badge.className = "text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800";
         }
         if (help) help.textContent = `🏖️ Week Off OT: Assign duties to staff who are off on ${currentDayOfWeek}.`;
+      } else if (type === 'LEAVE') {
+        document.getElementById('dtLeaveBtn').className = "duty-type-btn bg-red-50 border-2 border-red-600 text-red-700 p-2.5 rounded-xl text-center font-bold text-xs transition";
+        if (badge) {
+          badge.textContent = "🔴 Leave Mode";
+          badge.className = "text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-800";
+        }
+        if (help) help.textContent = '🔴 Leave: Staff taking leave. Location will auto-fill.';
+        const customLoc = document.getElementById('customLocationInput');
+        if (customLoc) customLoc.value = "ON LEAVE";
       }
 
       updateEmployeeDropdown();
@@ -688,7 +701,9 @@
       }
 
       const shiftRadio = document.querySelector('input[name="shift"]:checked');
-      const location = document.getElementById('locationSelect').value;
+      const locationDropdown = document.getElementById('locationSelect').value;
+      const customLocation = document.getElementById('customLocationInput') ? document.getElementById('customLocationInput').value.trim() : "";
+      const location = customLocation || locationDropdown;
 
       if (!emp || !shiftRadio || !location) {
         alert("Please Employee, Shift, and Location select cheyandi!");
@@ -716,6 +731,8 @@
       const locSelect = document.getElementById('locationSelect');
       locSelect.innerHTML = '<option value="">-- Select Shift First --</option>';
       locSelect.value = "";
+      const customLoc = document.getElementById('customLocationInput');
+      if (customLoc) customLoc.value = "";
 
       document.getElementById('selectedShiftLabel').textContent = "Please choose a shift";
       document.getElementById('locShiftSummary').textContent = "Select a shift first";
@@ -774,6 +791,8 @@
             dutyBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1.5">⚡ OT</span>`;
           } else if (item.dutyType === 'WEEK OFF OT') {
             dutyBadge = `<span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1.5">🏖️ WO-OT</span>`;
+          } else if (item.dutyType === 'LEAVE') {
+            dutyBadge = `<span class="bg-red-100 text-red-800 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1.5">🔴 LEAVE</span>`;
           }
 
           return `
@@ -868,7 +887,7 @@
         grouped[item.shift].push(item);
       });
 
-      const shiftOrder = { "Shift A": 1, "Shift B": 2, "Shift C": 3, "General Shift": 4, "8 Hours Duty": 5 };
+      const shiftOrder = { "Shift A": 1, "Shift B": 2, "Shift C": 3, "General Shift": 4, "8 Hrs Duty - Shift A": 5, "8 Hrs Duty - Shift B": 6 };
       const sortedShifts = Object.keys(grouped).sort((a, b) => (shiftOrder[a] || 99) - (shiftOrder[b] || 99));
 
       for (const shift of sortedShifts) {
@@ -877,6 +896,7 @@
           let typeTag = '';
           if (item.dutyType === 'OT') typeTag = ' [⚡ OT]';
           else if (item.dutyType === 'WEEK OFF OT') typeTag = ' [🏖️ WO-OT]';
+          else if (item.dutyType === 'LEAVE') typeTag = ' [🔴 LEAVE]';
 
           listText += `${idx + 1}. *${item.emp}*${typeTag}\n   └ 📍 ${item.location}\n`;
         });
