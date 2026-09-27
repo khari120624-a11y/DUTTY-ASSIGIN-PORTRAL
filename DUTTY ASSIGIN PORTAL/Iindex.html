@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Duty Assign Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased pb-20 min-h-screen">
+
+  <header class="bg-blue-700 text-white p-4 shadow-md sticky top-0 z-50">
+    <div class="max-w-md mx-auto flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold tracking-wide">DUTY ASSIGN PORTAL</h1>
+        <p class="text-xs text-blue-200">Quick Assignment & WhatsApp Sharing</p>
+      </div>
+      <span class="bg-blue-800 text-blue-100 text-xs px-2.5 py-1 rounded-full font-medium" id="currentDateDisplay">Today</span>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto p-4 space-y-4">
+
+    <!-- Navigation Tabs -->
+    <div class="flex bg-slate-200 p-1 rounded-xl font-medium text-sm">
+      <button id="tabAssignBtn" onclick="switchTab('assign')" class="flex-1 py-2 rounded-lg text-center bg-white text-blue-700 shadow-sm font-semibold transition">
+        📋 Assign Duty
+      </button>
+      <button id="tabHistoryBtn" onclick="switchTab('history')" class="flex-1 py-2 rounded-lg text-center text-slate-600 transition flex justify-center items-center space-x-1">
+        <span>📜 History Log</span>
+        <span id="historyBadge" class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full hidden">0</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: ASSIGN DUTY FORM -->
+    <div id="assignSection" class="space-y-4">
+
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">1. Staff Category</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="filterStaffCategory('ex-army')" id="catExArmyBtn" class="cat-btn bg-blue-50 border-2 border-blue-600 text-blue-700 p-2 rounded-xl text-center font-bold text-xs transition">
+            🎖️ Ex-Army
+          </button>
+          <button type="button" onclick="filterStaffCategory('civil-male')" id="catCivilMaleBtn" class="cat-btn bg-slate-50 border border-slate-200 text-slate-600 p-2 rounded-xl text-center font-semibold text-xs transition">
+            👨 Civil Male
+          </button>
+          <button type="button" onclick="filterStaffCategory('civil-female')" id="catCivilFemaleBtn" class="cat-btn bg-slate-50 border border-slate-200 text-slate-600 p-2 rounded-xl text-center font-semibold text-xs transition">
+            👩 Civil Female
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">2. Select Employee (ID & Name)</label>
+        <select id="empSelect" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <option value="">-- Select Employee --</option>
+        </select>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">3. Select Shift</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="shift" value="Shift A" onchange="onShiftChange()" class="peer hidden">
+            <div class="p-3 text-center border-2 border-slate-200 rounded-xl font-bold text-slate-600 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition text-sm">Shift A</div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="shift" value="Shift B" onchange="onShiftChange()" class="peer hidden">
+            <div class="p-3 text-center border-2 border-slate-200 rounded-xl font-bold text-slate-600 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition text-sm">Shift B</div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="shift" value="Shift C" onchange="onShiftChange()" class="peer hidden">
+            <div class="p-3 text-center border-2 border-slate-200 rounded-xl font-bold text-slate-600 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition text-sm">Shift C</div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="shift" value="General Shift" onchange="onShiftChange()" class="peer hidden">
+            <div class="p-3 text-center border-2 border-slate-200 rounded-xl font-bold text-slate-600 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition text-sm">General Shift</div>
+          </label>
+          <label class="cursor-pointer col-span-2">
+            <input type="radio" name="shift" value="8 Hours Duty" onchange="onShiftChange()" class="peer hidden">
+            <div class="p-3 text-center border-2 border-slate-200 rounded-xl font-bold text-slate-600 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition text-sm">8 Hours Duty</div>
+          </label>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">4. Duty Location</label>
+        <select id="locationSelect" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <option value="">-- Select Shift First --</option>
+        </select>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">5. Target WhatsApp Group</label>
+        <select id="groupSelect" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-green-500 focus:outline-none">
+          <option value="LALITH PUS">LALITH PUS Group</option>
+          <option value="SECURITY STAFF DUTY">SECURITY STAFF DUTY Group</option>
+          <option value="GENERAL ANNOUNCEMENTS">GENERAL ANNOUNCEMENTS Group</option>
+        </select>
+      </div>
+
+      <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-2xl text-xs space-y-1">
+        <div class="text-emerald-800 font-bold">📱 Live Message Preview:</div>
+        <div id="previewText" class="text-slate-700 font-mono whitespace-pre-line bg-white/70 p-2.5 rounded-xl border border-emerald-100">Select Employee, Shift & Location to preview.</div>
+      </div>
+
+      <button onclick="assignAndShare()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-4 rounded-2xl shadow-lg flex items-center justify-center space-x-2 text-base transition">
+        🚀 Assign & Send to WhatsApp
+      </button>
+
+    </div>
+
+    <!-- TAB 2: HISTORY LOG -->
+    <div id="historySection" class="hidden space-y-3">
+      <div class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-200">
+        <span class="text-xs font-bold text-slate-500 uppercase">Assigned Log History</span>
+        <button onclick="clearHistory()" class="text-xs text-red-600 font-semibold hover:underline">Clear History</button>
+      </div>
+      <div id="historyList" class="space-y-3"></div>
+    </div>
+
+  </main>
+
+  <script>
+    const staffDatabase = {
+      'ex-army': [
+        "245 - CH SIVA NAGA RAJU", "244 - K RAGHAVAIAH", "127 - SK BAAJI", "243 - PVR REDDY",
+        "246 - LOKESWARA RAO", "247 - E GOVINDA REDDY", "248 - G RATTAIAH", "269 - SK MASTAN VALI",
+        "270 - SD FIRDOSH", "271 - A KARIMULLAH", "272 - Y VIJAYA KRISHNA", "273 - E VEERANJANEYULU",
+        "290 - P VENKATA RAMU", "291 - S LAKSHMAN", "292 - SK MOULALI", "293 - N VENU BABU",
+        "296 - S PANDU RANGA RAO", "298 - KSN SANKAR", "301 - M SUDHAKAR", "303 - RL SIVAMALLA REDDY",
+        "305 - K JAGAN MOHAN", "308 - N VEERASWAMY", "309 - A SRINIVASA RAO", "314 - MD MUSTAK",
+        "325 - M ANJANEYULU", "326 - K GOPI", "330 - K KAMESWARARAO", "339 - P KOTESWARARAO",
+        "340 - K BALA RAJU", "344 - T VENKATA RAMANA", "345 - A PRASAD", "509 - P VIJAYA KUMAR",
+        "528 - S CHANDRA SEKHAR", "551 - SK RAFI", "556 - SK KARIMULLA", "592 - CH TIRUPATHAIAH"
+      ],
+      'civil-male': [
+        "148 - D MOSHE", "319 - SK BASHEED", "361 - D SRINIVASA RAO", "514 - J SANTHOSH KUMAR",
+        "569 - D JAYA KUMAR", "669 - CH SAMBA SIVA RAO", "670 - N NAGESWARA RAO",
+        "464 - V V NARAYANA", "1150 - D MOSHE", "5092 - D SRINIVAS", "361 - N BHARAT KUMAR"
+      ],
+      'civil-female': [
+        "461 - G NAGA VANI", "2526 - K KEERTHI", "2449 - VENKATA LAKSHMI", "2608 - N SIVAMMA",
+        "2520 - PARAMESWARI", "2899 - P MERRY", "3047 - P RISHITHA", "2959 - LAKSHMI RAJYAM",
+        "2814 - N ANURADHA", "K TRIVENI", "D RAMA DEVI", "V PRABHAVATHI", "B ROJA",
+        "K SIRISHA", "G HIMA BINDU"
+      ]
+    };
+
+    const locationMapping = {
+      "Shift A": ["MG 1", "MG 2", "OLD GATE", "CELLUAR", "PORTCO", "MRI(GF)", "P(HOUSE)", "4TH FLOOR", "TOP&7 TH F", "G(H)"],
+      "Shift B": ["MG 1", "MG 2", "OLD GATE", "CELLUAR", "PORTCO", "MRI(GF)", "P(HOUSE)", "4TH FLOOR", "TOP&7 TH F", "G(H)"],
+      "Shift C": ["MG 1", "MG 2", "OLD GATE", "CELLUAR", "PORTCO", "MRI(GF)", "P(HOUSE)", "TOP&7 TH F", "G(H 1)", "G(H 2)", "1 FLOOR", "2 FLOOR", "3RD FLOOR", "4F (1)", "4F(2)", "4F(3 A(CCU))", "5F(1)", "5F(2)", "24HRS LIFT", "VIP LIFT"],
+      "General Shift": ["EXCALATOR", "H(D) PORTCO", "MRI", "OT SECOND FLOOR", "G(LIFT)", "VIP(LIFT)", "24HRS LIFT", "COPER LIFT", "EMERGENCY LIFT", "4TH(NICU)"],
+      "8 Hours Duty": ["EMERGENCY", "2(F)", "3(F)", "4F (1)", "4F(2)", "4F(3 A(CCU))", "5F(1)", "5F(2)", "7 TH (F)", "VEH(P)", "GL(DOOR)"]
+    };
+
+    let history = JSON.parse(localStorage.getItem('duty_history') || '[]');
+
+    window.onload = function() {
+      document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+      filterStaffCategory('ex-army');
+      updateHistoryUI();
+      document.getElementById('empSelect').addEventListener('change', updatePreview);
+      document.getElementById('locationSelect').addEventListener('change', updatePreview);
+      document.getElementById('groupSelect').addEventListener('change', updatePreview);
+    };
+
+    function filterStaffCategory(catKey) {
+      document.querySelectorAll('.cat-btn').forEach(b => b.className = "cat-btn bg-slate-50 border border-slate-200 text-slate-600 p-2 rounded-xl text-center font-semibold text-xs");
+      if(catKey === 'ex-army') document.getElementById('catExArmyBtn').className = "cat-btn bg-blue-50 border-2 border-blue-600 text-blue-700 p-2 rounded-xl text-center font-bold text-xs";
+      if(catKey === 'civil-male') document.getElementById('catCivilMaleBtn').className = "cat-btn bg-blue-50 border-2 border-blue-600 text-blue-700 p-2 rounded-xl text-center font-bold text-xs";
+      if(catKey === 'civil-female') document.getElementById('catCivilFemaleBtn').className = "cat-btn bg-blue-50 border-2 border-blue-600 text-blue-700 p-2 rounded-xl text-center font-bold text-xs";
+
+      const select = document.getElementById('empSelect');
+      select.innerHTML = '<option value="">-- Select Employee --</option>';
+      staffDatabase[catKey].forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name; opt.textContent = name;
+        select.appendChild(opt);
+      });
+      updatePreview();
+    }
+
+    function onShiftChange() {
+      const selectedShift = document.querySelector('input[name="shift"]:checked')?.value;
+      const locSelect = document.getElementById('locationSelect');
+      locSelect.innerHTML = '<option value="">-- Choose Location --</option>';
+      if (selectedShift && locationMapping[selectedShift]) {
+        locationMapping[selectedShift].forEach(loc => {
+          const opt = document.createElement('option');
+          opt.value = loc; opt.textContent = loc;
+          locSelect.appendChild(opt);
+        });
+      }
+      updatePreview();
+    }
+
+    function updatePreview() {
+      const emp = document.getElementById('empSelect').value;
+      const shiftObj = document.querySelector('input[name="shift"]:checked');
+      const location = document.getElementById('locationSelect').value;
+      const group = document.getElementById('groupSelect').value;
+
+      if (!emp || !shiftObj || !location) {
+        document.getElementById('previewText').innerText = "Select Employee, Shift & Location to preview.";
+        return;
+      }
+
+      const currentDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      document.getElementById('previewText').innerText = `📋 *DUTY ASSIGNMENT DETAILS*\n\n👤 *Staff:* ${emp}\n⏰ *Shift:* ${shiftObj.value}\n📍 *Location:* ${location}\n📢 *Group:* ${group}\n📅 *Date:* ${currentDate}`;
+    }
+
+    function assignAndShare() {
+      const emp = document.getElementById('empSelect').value;
+      const shiftObj = document.querySelector('input[name="shift"]:checked');
+      const location = document.getElementById('locationSelect').value;
+      const group = document.getElementById('groupSelect').value;
+
+      if (!emp || !shiftObj || !location) {
+        alert("Please Employee, Shift, and Location select cheyandi!");
+        return;
+      }
+
+      const currentDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      const currentTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+      history.unshift({ id: Date.now(), emp, shift: shiftObj.value, location, group, date: currentDate, time: currentTime });
+      localStorage.setItem('duty_history', JSON.stringify(history));
+      updateHistoryUI();
+
+      const message = `📋 *DUTY ASSIGNMENT DETAILS*\n\n👤 *Staff:* ${emp}\n⏰ *Shift:* ${shiftObj.value}\n📍 *Location:* ${location}\n📢 *Group:* ${group}\n📅 *Date:* ${currentDate}`;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    function updateHistoryUI() {
+      const container = document.getElementById('historyList');
+      const badge = document.getElementById('historyBadge');
+      if (history.length > 0) { badge.innerText = history.length; badge.classList.remove('hidden'); }
+      else { badge.classList.add('hidden'); }
+
+      if (history.length === 0) {
+        container.innerHTML = `<div class="bg-white p-6 rounded-2xl text-center text-slate-400 text-sm border">No history yet.</div>`;
+        return;
+      }
+
+      container.innerHTML = history.map(item => `
+        <div class="bg-white p-4 rounded-2xl border space-y-2">
+          <div class="flex justify-between">
+            <div><p class="font-bold text-sm">${item.emp}</p><p class="text-xs text-slate-500">${item.date} • ${item.time}</p></div>
+            <span class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg">${item.shift}</span>
+          </div>
+          <div class="text-xs text-slate-600 bg-slate-50 p-2 rounded-xl flex justify-between">
+            <span>📍 <b>${item.location}</b></span><span>📢 <b>${item.group}</b></span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function clearHistory() {
+      if (confirm("Clear all history logs?")) {
+        history = []; localStorage.removeItem('duty_history'); updateHistoryUI();
+      }
+    }
+
+    function switchTab(tab) {
+      if (tab === 'assign') {
+        document.getElementById('assignSection').classList.remove('hidden');
+        document.getElementById('historySection').classList.add('hidden');
+      } else {
+        document.getElementById('assignSection').classList.add('hidden');
+        document.getElementById('historySection').classList.remove('hidden');
+      }
+    }
+  </script>
+</body>
+</html>
